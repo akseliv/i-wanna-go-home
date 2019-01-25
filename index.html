@@ -18,6 +18,7 @@
         type: Phaser.AUTO,
         width: 640,
         height: 448,
+        pixelArt: true,
         scene: {
             preload: preload,
             create: create,
@@ -44,6 +45,7 @@
         
         let xShift = 0;
         let yShift = 0;
+        
         for (i = 0; i < 64; i++) { 
 
             if(i > 0 && i % 8 == 0){
@@ -58,6 +60,30 @@
             xShift = xShift + 32;
         }
         player = this.physics.add.sprite(320-16, 352-16, 'player');
+        const bounds = [];
+        for(i = 0; i < 8;i++) {
+            let bound = this.physics.add.sprite(160+16,96+16+i*32, 'bounds');
+            bound.body.immovable = true;
+            bounds.push(bound);
+        }
+        for(i = 0; i < 8;i++) {
+            let bound = this.physics.add.sprite(448+16,96+16+i*32, 'bounds');
+            bound.body.immovable = true;
+            bounds.push(bound);
+        }
+        for(i = 0; i < 8;i++) {
+            let bound = this.physics.add.sprite(192+16+i*32,64+16, 'bounds');
+            bound.body.immovable = true;
+            bounds.push(bound);
+        }
+        for(i = 0; i < 8;i++) {
+            let bound = this.physics.add.sprite(192+16+i*32,352+16, 'bounds');
+            bound.body.immovable = true;
+            bounds.push(bound);
+        }
+
+
+        this.physics.add.collider(player, bounds);
         cursors = this.input.keyboard.createCursorKeys();
     }
 
