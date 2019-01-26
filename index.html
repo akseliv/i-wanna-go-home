@@ -25,9 +25,10 @@
             create: create,
             update: update,
             extend: {
-                createLevel: createLevel,
+                getContext: getContext,
                 createFirstLevel: createFirstLevel,
-                createItem: createItem
+                createItem: createItem,
+                createHomeDoor: createHomeDoor
             }
         },
         physics: {
@@ -47,12 +48,26 @@
         this.load.image('ground_4', 'assets/tile_ground_04.png');
         this.load.image('tile_edge_h', 'assets/tile_edge.png');
         this.load.image('item_sword', 'assets/item_sword.png');
+
+        this.load.image('grass', 'assets/tile_grass_03.png');
+        this.load.image('water', 'assets/tile_water.png');
+        this.load.spritesheet('lava', 'assets/anim_lava_02.png', { frameWidth: 32, frameHeight: 32 });
     }
 
     function create ()
     {
+        var config = {
+            key: 'lava',
+            frames: this.anims.generateFrameNumbers('lava'),
+            frameRate: 20,
+            repeat: -1
+        };
+
+        this.anims.create(config);
+
         playerItems = [];
         shelfItems = [];
+        levelSprites = [];
 
         this.bounds = [];
         bounds = this.bounds;
@@ -79,8 +94,8 @@
 
         this.createFirstLevel();
     }
+    const playerControls = function(player){
 
-    function update () {
         player.setVelocityX(0);
         player.setVelocityY(0);
         if (cursors.left.isDown) {
@@ -94,7 +109,13 @@
         }
     }
 
-    const firstLevelTiles = Array(64).fill('ground_2');
+    function update () {
+        if(player.body){
+            playerControls(player);
+        }
+    }
+
+    const firstLevelTiles = Array(64).fill('ground_4');
 
     function createFirstLevel() {
         let xShift = 0;
@@ -106,21 +127,35 @@
                 xShift = 0;
                 yShift = yShift +32;
             }
-            this.physics.add.sprite(192+xShift+16,96+yShift+16, firstLevelTiles[i]);
-            /*var rect = new Phaser.Geom.Rectangle(192+xShift,96+yShift,32,32);
-
-            var graphics = this.add.graphics({ lineStyle: { color: 0x0000ff } });
-            graphics.strokeRectShape(rect);*/
+            const sprite = this.physics.add.sprite(192+xShift+16,96+yShift+16, firstLevelTiles[i]);
+            levelSprites.push(sprite);
             xShift = xShift + 32;
         }
         player = this.physics.add.sprite(320-16, 352-16, 'player');
         this.createItem(320-16, 224-16, 'item_sword');
+        this.createHomeDoor(320-16, 128-16);
         this.physics.add.collider(player, this.bounds);
         cursors = this.input.keyboard.createCursorKeys();
 
     }
+
+    function getContext(){
+        //dirty hack to get the correct context in functions
+        return game.scene.scenes[0];
+    }
     
-    function createLevel() {
+    const getFilledArray = function(len, tile) {
+        return Array(len).fill(tile);
+    }
+
+    const createLevel = function() {
+        const grass = getFilledArray(16,'grass');
+        const lava = getFilledArray(16,'lava');
+        const water = getFilledArray(16,'water');
+        const ground = getFilledArray(16,'ground_4');
+
+        const levelTiles = shuffle([...grass,...lava,...water,...ground]);
+
         let xShift = 0;
         let yShift = 0;
         
@@ -130,21 +165,23 @@
                 xShift = 0;
                 yShift = yShift +32;
             }
-            this.physics.add.sprite(192+xShift+16,96+yShift+16, 'ground_3');
-            /*var rect = new Phaser.Geom.Rectangle(192+xShift,96+yShift,32,32);
+            const sprite = getContext().physics.add.sprite(192+xShift+16,96+yShift+16, levelTiles[i]);
+            if(getContext().anims.anims.entries[levelTiles[i]]){
+                sprite.anims.play('lava');
+            }
+            levelSprites.push(sprite);
 
-            var graphics = this.add.graphics({ lineStyle: { color: 0x0000ff } });
-            graphics.strokeRectShape(rect);*/
             xShift = xShift + 32;
         }
-        player = this.physics.add.sprite(320-16, 352-16, 'player');
-        this.physics.add.collider(player, this.bounds);
-        cursors = this.input.keyboard.createCursorKeys();
+        player = getContext().physics.add.sprite(320-16, 352-16, 'player');
+        getContext().physics.add.collider(player, this.bounds);
+        cursors = getContext().input.keyboard.createCursorKeys();
 
     }
 
     function createItem(x,y,item) {
         const sprite = this.physics.add.sprite(x,y,item);
+        levelSprites.push(sprite);
         this.physics.add.overlap(
             sprite, 
             player, 
@@ -152,6 +189,34 @@
                 playerItems.push(item);
                 sprite.destroy()
             })
+    }
+    const goHome = function() {
+        levelSprites.forEach(sprite => sprite.destroy());
+        shelfItems = [...playerItems];
+        playerItems = [];
+        createLevel();
+
+    }
+
+    function createHomeDoor(x,y) {
+        const sprite = this.physics.add.sprite(x,y,'home_door');
+        levelSprites.push(sprite);
+        this.physics.add.overlap(
+            sprite, 
+            player, 
+            (sprite, player) => {
+                player.destroy();
+                console.log('go home');
+                goHome();
+            })
+    }
+
+    function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
     }
 
 </script>
