@@ -2,7 +2,7 @@
 <html lang="en"> 
 <head> 
     <meta charset="UTF-8" />
-    <title>Making your first Phaser 3 Game - Part 1</title>
+    <title>&#9876; Rogue Homesickness Adventure</title>
     <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
     <style type="text/css">
         body {
@@ -19,6 +19,7 @@
         width: 640,
         height: 448,
         pixelArt: true,
+        backgroundColor: 0x0000ff,
         scene: {
             preload: preload,
             create: create,
@@ -37,7 +38,8 @@
     function preload ()
     {
         this.load.image('player', 'assets/cha_player.png');
-        this.load.image('ground_2', 'assets/tile_ground_02.png');
+        this.load.image('ground_2', 'assets/tile_ground_03.png');
+        this.load.image('tile_edge_h', 'assets/tile_edge.png');
     }
 
     function create ()
@@ -62,22 +64,22 @@
         player = this.physics.add.sprite(320-16, 352-16, 'player');
         const bounds = [];
         for(i = 0; i < 8;i++) {
-            let bound = this.physics.add.sprite(160+16,96+16+i*32, 'bounds');
+            let bound = this.physics.add.sprite(160+16,96+16+i*32, 'tile_edge_h');
             bound.body.immovable = true;
             bounds.push(bound);
         }
         for(i = 0; i < 8;i++) {
-            let bound = this.physics.add.sprite(448+16,96+16+i*32, 'bounds');
+            let bound = this.physics.add.sprite(448+16,96+16+i*32, 'tile_edge_h');
             bound.body.immovable = true;
             bounds.push(bound);
         }
         for(i = 0; i < 8;i++) {
-            let bound = this.physics.add.sprite(192+16+i*32,64+16, 'bounds');
+            let bound = this.physics.add.sprite(192+16+i*32,64+16, 'tile_edge_h');
             bound.body.immovable = true;
             bounds.push(bound);
         }
         for(i = 0; i < 8;i++) {
-            let bound = this.physics.add.sprite(192+16+i*32,352+16, 'bounds');
+            let bound = this.physics.add.sprite(192+16+i*32,352+16, 'tile_edge_h');
             bound.body.immovable = true;
             bounds.push(bound);
         }
