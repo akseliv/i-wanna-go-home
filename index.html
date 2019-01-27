@@ -56,6 +56,9 @@
         this.load.spritesheet('home_door', 'assets/anim_p0rtal2.png', { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet('next_door', 'assets/anim_p0rtal.png', { frameWidth: 32, frameHeight: 32 });
 
+        this.load.image('homefloor', 'assets/tile_homefloor.png');
+        this.load.image('homewall', 'assets/tile_homewall.png');
+
     }
 
     function create ()
@@ -106,6 +109,11 @@
         levelCount = 0;
         itemRoomVisited = false;
         isHome = true;
+        homeSicknessFromTiles = {
+            lava: 0.5,
+            grass: 0,
+            water: 0
+        }
 
         rect = new Phaser.Geom.Rectangle(192, 32, 0, 32);
 
@@ -165,7 +173,7 @@
             getContext().scene.restart();
         }
         if(!isHome){
-            homeSickness = homeSickness + 0.5;
+            homeSickness = homeSickness + 0.1;
         }
         graphics.clear();
         rect.setSize(homeSickness,32);
@@ -204,6 +212,9 @@
                 xShift = 0;
                 yShift = yShift +32;
             }
+
+            createTile(192+xShift+16,96+yShift+16,'homefloor');
+
             if(i+1 == 64){
                 createNextDoor(192+xShift+16,96+yShift+16);
             }
@@ -246,11 +257,8 @@
                 xShift = 0;
                 yShift = yShift +32;
             }
-            const sprite = getContext().physics.add.sprite(192+xShift+16,96+yShift+16, levelTiles[i]);
-            if(getContext().anims.anims.entries[levelTiles[i]]){
-                sprite.anims.play('lava');
-            }
-            levelSprites.push(sprite);
+            // create tile
+            createTile(192+xShift+16,96+yShift+16, levelTiles[i]);
 
             // create next doors
             if(doorPositions[i+1]){
@@ -266,10 +274,31 @@
         }
     }
 
+    const createTile = function(x,y,tile){
+        const sprite = getContext().physics.add.sprite(x, y, tile);
+        if(getContext().anims.anims.entries[tile]){
+            sprite.anims.play('lava');
+        }
+        getContext().physics.add.overlap(
+            sprite, 
+            player, 
+            (sprite, player) => {
+            player.tint = undefined;
+            let homeSicknessDamage = (homeSicknessFromTiles[tile] || 0);
+            homeSickness = homeSickness + homeSicknessDamage;
+            if(homeSicknessDamage > 0){
+                player.tint = Math.random() * 0xffffff;
+            }
+        });
+
+        levelSprites.push(sprite);
+    }
+
     const createPlayer = function(){
         const player = getContext().physics.add.sprite(320-16, 352-16, 'player');
         player.anims.play('player');
         player.depth = 9000;
+        console.log(player.tint);
         getContext().physics.add.collider(player, getContext().bounds);
         cursors = getContext().input.keyboard.createCursorKeys();
         return player;
