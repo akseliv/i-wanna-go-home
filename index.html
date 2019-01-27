@@ -7,6 +7,9 @@
     <style type="text/css">
         body {
             margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
@@ -18,8 +21,8 @@
         type: Phaser.AUTO,
         width: 640,
         height: 448,
+        zoom: 1.5,
         pixelArt: true,
-        backgroundColor: 0x0000ff,
         scene: {
             preload: preload,
             create: create,
@@ -43,10 +46,13 @@
 
     function preload ()
     {
-        this.load.image('player', 'assets/cha_player.png');
+        this.load.spritesheet('player', 'assets/anim_player.png', { frameWidth: 32, frameHeight: 32 });
         this.load.image('ground_2', 'assets/tile_ground_03.png');
         this.load.image('ground_4', 'assets/tile_ground_04.png');
-        this.load.image('tile_edge_h', 'assets/tile_edge.png');
+        this.load.image('tile_edge_1', 'assets/tile_edgewall1.png');
+        this.load.image('tile_edge_2', 'assets/tile_edgewall2.png');
+        this.load.image('tile_edge_3', 'assets/tile_edgewall3.png');
+        this.load.image('tile_edge_4', 'assets/tile_edgewall4.png');
         this.load.image('item_sword', 'assets/item_sword.png');
 
         this.load.image('grass', 'assets/tile_grass_03.png');
@@ -56,9 +62,18 @@
 
     function create ()
     {
-        var config = {
+        let config = {
             key: 'lava',
             frames: this.anims.generateFrameNumbers('lava'),
+            frameRate: 20,
+            repeat: -1
+        };
+
+        this.anims.create(config);
+
+        config = {
+            key: 'player',
+            frames: this.anims.generateFrameNumbers('player'),
             frameRate: 20,
             repeat: -1
         };
@@ -68,26 +83,27 @@
         playerItems = [];
         shelfItems = [];
         levelSprites = [];
+        homeSickness = 0;
 
         this.bounds = [];
         bounds = this.bounds;
         for(i = 0; i < 8;i++) {
-            let bound = this.physics.add.sprite(160+16,96+16+i*32, 'tile_edge_h');
+            let bound = this.physics.add.sprite(160+16,96+16+i*32, 'tile_edge_4');
             bound.body.immovable = true;
             bounds.push(bound);
         }
         for(i = 0; i < 8;i++) {
-            let bound = this.physics.add.sprite(448+16,96+16+i*32, 'tile_edge_h');
+            let bound = this.physics.add.sprite(448+16,96+16+i*32, 'tile_edge_2');
             bound.body.immovable = true;
             bounds.push(bound);
         }
         for(i = 0; i < 8;i++) {
-            let bound = this.physics.add.sprite(192+16+i*32,64+16, 'tile_edge_h');
+            let bound = this.physics.add.sprite(192+16+i*32,64+16, 'tile_edge_1');
             bound.body.immovable = true;
             bounds.push(bound);
         }
         for(i = 0; i < 8;i++) {
-            let bound = this.physics.add.sprite(192+16+i*32,352+16, 'tile_edge_h');
+            let bound = this.physics.add.sprite(192+16+i*32,352+16, 'tile_edge_3');
             bound.body.immovable = true;
             bounds.push(bound);
         }
@@ -131,7 +147,7 @@
             levelSprites.push(sprite);
             xShift = xShift + 32;
         }
-        player = this.physics.add.sprite(320-16, 352-16, 'player');
+        let player = createPlayer();
         this.createItem(320-16, 224-16, 'item_sword');
         this.createHomeDoor(320-16, 128-16);
         this.physics.add.collider(player, this.bounds);
@@ -173,10 +189,16 @@
 
             xShift = xShift + 32;
         }
-        player = getContext().physics.add.sprite(320-16, 352-16, 'player');
+        let player = createPlayer();
         getContext().physics.add.collider(player, this.bounds);
         cursors = getContext().input.keyboard.createCursorKeys();
 
+    }
+
+    const createPlayer = function(){
+        player = getContext().physics.add.sprite(320-16, 352-16, 'player');
+        player.anims.play('player');
+        return player;
     }
 
     function createItem(x,y,item) {
