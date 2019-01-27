@@ -27,13 +27,7 @@
         scene: {
             preload: preload,
             create: create,
-            update: update,
-            extend: {
-                getContext: getContext,
-                createFirstLevel: createFirstLevel,
-                createItem: createItem,
-                createHomeDoor: createHomeDoor
-            }
+            update: update
         },
         physics: {
             default: 'arcade',
@@ -110,6 +104,7 @@
         levelSprites = [];
         homeSickness = 0;
         levelCount = 0;
+        itemRoomVisited = false;
 
         this.bounds = [];
         bounds = this.bounds;
@@ -134,7 +129,7 @@
             bounds.push(bound);
         }
 
-        this.createFirstLevel();
+        createHome();
     }
     const playerControls = function(player){
 
@@ -159,7 +154,7 @@
 
     const firstLevelTiles = Array(64).fill('ground_4');
 
-    function createFirstLevel() {
+    const createFirstLevel = function() {
         let xShift = 0;
         let yShift = 0;
         
@@ -169,33 +164,35 @@
                 xShift = 0;
                 yShift = yShift +32;
             }
-            const sprite = this.physics.add.sprite(192+xShift+16,96+yShift+16, firstLevelTiles[i]);
+            const sprite = getContext().physics.add.sprite(192+xShift+16,96+yShift+16, firstLevelTiles[i]);
             levelSprites.push(sprite);
             xShift = xShift + 32;
         }
         player = createPlayer();
-        this.createItem(320-16, 224-16, 'item_sword');
-        this.createHomeDoor(320-16, 128-16);
+        createItem(320-16, 224-16, 'item_sword');
+        createHomeDoor(320-16, 128-16);
     }
 
-    function createHome() {
+    const createHome = function() {
         let xShift = 0;
         let yShift = 0;
-        
+        player = createPlayer();
+
         for (i = 0; i < 64; i++) { 
 
             if(i > 0 && i % 8 == 0){
                 xShift = 0;
                 yShift = yShift +32;
             }
-
+            if(i+1 == 64){
+                createNextDoor(192+xShift+16,96+yShift+16);
+            }
             xShift = xShift + 32;
         }
-        player = createPlayer();
-        this.createNextDoor(320-16, 128-16);
+
     }
 
-    function getContext(){
+    const getContext = function(){
         //dirty hack to get the correct context in functions
         return game.scene.scenes[0];
     }
@@ -258,10 +255,10 @@
         return player;
     }
 
-    function createItem(x,y,item) {
-        const sprite = this.physics.add.sprite(x,y,item);
+    const createItem = function(x,y,item) {
+        const sprite = getContext().physics.add.sprite(x,y,item);
         levelSprites.push(sprite);
-        this.physics.add.overlap(
+        getContext().physics.add.overlap(
             sprite, 
             player, 
             (sprite, player) => {
@@ -273,14 +270,20 @@
         levelSprites.forEach(sprite => sprite.destroy());
         shelfItems = [...playerItems];
         playerItems = [];
-        createLevel();
+        createHome();
 
     }
 
     const goForward = function() {
         levelSprites.forEach(sprite => sprite.destroy());
-        levelCount++;
-        createLevel();
+
+        if(!itemRoomVisited){
+            itemRoomVisited = true;
+            createFirstLevel();
+        }else{
+            levelCount++;
+            createLevel();
+        }
     }
 
     function createHomeDoor(x,y) {
