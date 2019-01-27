@@ -108,6 +108,7 @@
         shelfItems = [];
         levelSprites = [];
         homeSickness = 0;
+        levelCount = 0;
 
         this.bounds = [];
         bounds = this.bounds;
@@ -263,6 +264,12 @@
 
     }
 
+    const goForward = function() {
+        levelSprites.forEach(sprite => sprite.destroy());
+        levelCount++;
+        createLevel();
+    }
+
     function createHomeDoor(x,y) {
         const sprite = getContext().physics.add.sprite(x,y,'home_door');
         sprite.anims.play('home_door');
@@ -285,7 +292,7 @@
             player, 
             (sprite, player) => {
                 player.destroy();
-                console.log('teleported somewhere else');
+                goForward();
             })
     }
 
