@@ -177,7 +177,9 @@
 
     const homeSicknessUpdate = function(){
         if(homeSickness >= 256){
-            getContext().scene.restart();
+            player.destroy();
+            levelSprites.forEach(sprite => sprite.destroy());
+            setTimeout( () => getContext().scene.restart(),1000);
         }
         if(!isHome){
             homeSickness = homeSickness + 0.1;
