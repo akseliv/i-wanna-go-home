@@ -126,6 +126,8 @@
 
         graphics.fillRectShape(rect);
 
+        levelIndicator = this.add.text(32, 384, 'Level: 0');
+
         this.bounds = [];
         bounds = this.bounds;
         for(i = 0; i < 8;i++) {
@@ -344,6 +346,7 @@
             })
     }
     const goHome = function() {
+        levelCount = 0;
         levelSprites.forEach(sprite => sprite.destroy());
         if(shelfItems.length < 1){
             shelfItems = [...playerItems];
@@ -363,6 +366,7 @@
             createFirstLevel();
         }else{
             levelCount++;
+            levelIndicator.setText('Level: '+levelCount);
             createLevel();
         }
     }
