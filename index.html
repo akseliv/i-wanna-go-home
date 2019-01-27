@@ -49,6 +49,9 @@
         this.load.image('tile_edge_3', 'assets/tile_edgewall3.png');
         this.load.image('tile_edge_4', 'assets/tile_edgewall4.png');
         this.load.image('item_sword', 'assets/item_sword.png');
+        this.load.image('item_lava', 'assets/item_fire.png');
+        this.load.image('item_water', 'assets/item_water.png');
+        this.load.image('item_grass', 'assets/item_wood.png');
 
         this.load.image('grass', 'assets/tile_grass_03.png');
         this.load.image('water', 'assets/tile_water.png');
@@ -113,8 +116,8 @@
         isHome = true;
         homeSicknessFromTiles = {
             lava: 0.5,
-            grass: 0,
-            water: 0
+            grass: 0.5,
+            water: 0.5
         }
 
         rect = new Phaser.Geom.Rectangle(192, 32, 0, 32);
@@ -183,7 +186,7 @@
     }
 
     const firstLevelTiles = Array(64).fill('ground_4');
-
+    const items = ['item_grass','item_lava','item_water'];
     const createFirstLevel = function() {
         let xShift = 0;
         let yShift = 0;
@@ -199,7 +202,7 @@
             xShift = xShift + 32;
         }
         player = createPlayer();
-        createItem(320-16, 224-16, 'item_sword');
+        createItem(320-16, 224-16, items[_.random(0,2)]);
         createHomeDoor(320-16, 128-16);
     }
 
@@ -306,6 +309,10 @@
             (sprite, player) => {
             player.tint = undefined;
             let homeSicknessDamage = (homeSicknessFromTiles[tile] || 0);
+            if(shelfItems[0] == 'item_'+tile){
+                console.log('cleared by item');
+                homeSicknessDamage = 0;
+            }
             homeSickness = homeSickness + homeSicknessDamage;
             if(homeSicknessDamage > 0){
                 player.tint = Math.random() * 0xffffff;
@@ -338,7 +345,9 @@
     }
     const goHome = function() {
         levelSprites.forEach(sprite => sprite.destroy());
-        shelfItems = [...playerItems];
+        if(shelfItems.length < 1){
+            shelfItems = [...playerItems];
+        }
         playerItems = [];
         isHome = true;
         homeSickness = 0;
