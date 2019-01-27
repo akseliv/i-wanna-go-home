@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>&#9876; Rogue Homesickness Adventure</title>
     <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.11/lodash.min.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -58,10 +59,14 @@
         this.load.image('grass', 'assets/tile_grass_03.png');
         this.load.image('water', 'assets/tile_water.png');
         this.load.spritesheet('lava', 'assets/anim_lava_02.png', { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('home_door', 'assets/anim_p0rtal2.png', { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet('next_door', 'assets/anim_p0rtal.png', { frameWidth: 32, frameHeight: 32 });
+
     }
 
     function create ()
     {
+        // setiup animations
         let config = {
             key: 'lava',
             frames: this.anims.generateFrameNumbers('lava'),
@@ -80,6 +85,25 @@
 
         this.anims.create(config);
 
+        config = {
+            key: 'home_door',
+            frames: this.anims.generateFrameNumbers('home_door'),
+            frameRate: 5,
+            repeat: -1
+        };
+
+        this.anims.create(config);
+
+        config = {
+            key: 'next_door',
+            frames: this.anims.generateFrameNumbers('next_door'),
+            frameRate: 5,
+            repeat: -1
+        };
+
+        this.anims.create(config);
+
+        player = {};
         playerItems = [];
         shelfItems = [];
         levelSprites = [];
@@ -147,7 +171,7 @@
             levelSprites.push(sprite);
             xShift = xShift + 32;
         }
-        let player = createPlayer();
+        player = createPlayer();
         this.createItem(320-16, 224-16, 'item_sword');
         this.createHomeDoor(320-16, 128-16);
         this.physics.add.collider(player, this.bounds);
@@ -174,7 +198,15 @@
 
         let xShift = 0;
         let yShift = 0;
-        
+
+        let doorPositions = [];
+        const doorOne = _.random(16);
+        const doorTwo = _.random(16);
+        doorPositions[doorOne] = 1;
+        doorPositions[doorTwo] = 2;
+
+        player = createPlayer();
+
         for (i = 0; i < 64; i++) { 
 
             if(i > 0 && i % 8 == 0){
@@ -187,17 +219,28 @@
             }
             levelSprites.push(sprite);
 
+            // create next doors
+            if(doorPositions[i+1]){
+                createNextDoor(192+xShift+16,96+yShift+16);
+            }
+
+            // create home door
+            if(i == 56){
+                this.createHomeDoor(192+xShift+16,96+yShift+16);
+            }
+
             xShift = xShift + 32;
         }
-        let player = createPlayer();
         getContext().physics.add.collider(player, this.bounds);
         cursors = getContext().input.keyboard.createCursorKeys();
+
 
     }
 
     const createPlayer = function(){
-        player = getContext().physics.add.sprite(320-16, 352-16, 'player');
+        const player = getContext().physics.add.sprite(320-16, 352-16, 'player');
         player.anims.play('player');
+        player.depth = 9000;
         return player;
     }
 
@@ -221,15 +264,28 @@
     }
 
     function createHomeDoor(x,y) {
-        const sprite = this.physics.add.sprite(x,y,'home_door');
+        const sprite = getContext().physics.add.sprite(x,y,'home_door');
+        sprite.anims.play('home_door');
         levelSprites.push(sprite);
-        this.physics.add.overlap(
+        getContext().physics.add.overlap(
             sprite, 
             player, 
             (sprite, player) => {
                 player.destroy();
-                console.log('go home');
                 goHome();
+            })
+    }
+
+    function createNextDoor(x,y) {
+        const sprite = getContext().physics.add.sprite(x,y,'next_door');
+        sprite.anims.play('next_door');
+        levelSprites.push(sprite);
+        getContext().physics.add.overlap(
+            sprite, 
+            player, 
+            (sprite, player) => {
+                player.destroy();
+                console.log('teleported somewhere else');
             })
     }
 
