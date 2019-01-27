@@ -59,11 +59,13 @@
         this.load.image('homefloor', 'assets/tile_homefloor.png');
         this.load.image('homewall', 'assets/tile_homewall.png');
 
+        this.load.image('shelf', 'assets/ui_shelf.png');
+
     }
 
     function create ()
     {
-        // setiup animations
+        // setup animations
         let config = {
             key: 'lava',
             frames: this.anims.generateFrameNumbers('lava'),
@@ -214,9 +216,24 @@
             }
 
             createTile(192+xShift+16,96+yShift+16,'homefloor');
-
+            if(i+1 < 57){
+                const sprite = createTile(192+xShift+16,96+yShift+16,'homewall', 'solid');
+            }
             if(i+1 == 64){
                 createNextDoor(192+xShift+16,96+yShift+16);
+            }
+            if(i+1 == 9){
+                const shelf = createTile(256+xShift+64,96+yShift+16,'shelf');
+                shelf.depth = 2;
+                if(shelfItems.length > 0){
+                    shelfItems.forEach( (item,index) => {
+                        const sprite = createTile(256+32*1+index+xShift,64+20+yShift,item);
+                        sprite.depth = 3;
+                        
+                    }
+                );
+
+                }
             }
             xShift = xShift + 32;
         }
@@ -274,10 +291,14 @@
         }
     }
 
-    const createTile = function(x,y,tile){
+    const createTile = function(x,y,tile, solid){
         const sprite = getContext().physics.add.sprite(x, y, tile);
         if(getContext().anims.anims.entries[tile]){
             sprite.anims.play('lava');
+        }
+        if(solid){
+            sprite.body.immovable = true;
+            getContext().physics.add.collider(player, sprite);
         }
         getContext().physics.add.overlap(
             sprite, 
@@ -292,13 +313,13 @@
         });
 
         levelSprites.push(sprite);
+        return sprite;
     }
 
     const createPlayer = function(){
         const player = getContext().physics.add.sprite(320-16, 352-16, 'player');
         player.anims.play('player');
         player.depth = 9000;
-        console.log(player.tint);
         getContext().physics.add.collider(player, getContext().bounds);
         cursors = getContext().input.keyboard.createCursorKeys();
         return player;
