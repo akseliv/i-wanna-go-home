@@ -105,6 +105,13 @@
         homeSickness = 0;
         levelCount = 0;
         itemRoomVisited = false;
+        isHome = true;
+
+        rect = new Phaser.Geom.Rectangle(192, 32, 0, 32);
+
+        graphics = this.add.graphics({ fillStyle: { color: 0xdf7126 } });
+
+        graphics.fillRectShape(rect);
 
         this.bounds = [];
         bounds = this.bounds;
@@ -150,6 +157,19 @@
         if(player.body){
             playerControls(player);
         }
+        homeSicknessUpdate();
+    }
+
+    const homeSicknessUpdate = function(){
+        if(homeSickness >= 256){
+            getContext().scene.restart();
+        }
+        if(!isHome){
+            homeSickness = homeSickness + 0.5;
+        }
+        graphics.clear();
+        rect.setSize(homeSickness,32);
+        graphics.fillRectShape(rect);
     }
 
     const firstLevelTiles = Array(64).fill('ground_4');
@@ -270,13 +290,15 @@
         levelSprites.forEach(sprite => sprite.destroy());
         shelfItems = [...playerItems];
         playerItems = [];
+        isHome = true;
+        homeSickness = 0;
         createHome();
 
     }
 
     const goForward = function() {
         levelSprites.forEach(sprite => sprite.destroy());
-
+        isHome = false;
         if(!itemRoomVisited){
             itemRoomVisited = true;
             createFirstLevel();
